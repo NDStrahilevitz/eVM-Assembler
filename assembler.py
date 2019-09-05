@@ -7,13 +7,18 @@ def exit_error(msg):
 
 #validates and fixes hex number
 def fix_hex_num(n):
-    res= ""
+    res = ""
     num = hex(int(n))
+    print(num)
     if(int(n) > 0xffff):
         exit_error("NUMBER TOO LARGE")
     res += num[2:]
     return res
 
+#fixes decimal to 16bit form hex number
+def fix_to_16bit(n):
+    res = fix_hex_num(n)
+    return (4-len(res))*'0' + res
 
 def is_valid_register(reg):
     regre = re.compile("r(([0-9])|(1[0-5]))\\b")
@@ -26,53 +31,62 @@ def get_register_number(reg):
     return num
 
 src = open("code.ec", 'r')
-dest = open("res.evm", 'w')
+asm = open("res.evm", 'w')
 
 for line in src:
     instr = line.split()
     opr = instr[0]
     if opr == "END":
         print("end")
-        dest.write("0x0\n")
+        asm.write("0x00000000\n")
     if opr == "NOP":
         print("nop")
-        dest.write("0x10000000\n")
+        asm.write("0x01000000\n")
     if opr == "PUSH":
         print("push")
-        res = "0x2000"
+        res = "0x0a00"
         if(instr[1]):
-            value = fix_hex_num(instr[1])
-            res += '0'*(4-len(value))
+            value = fix_to_16bit(instr[1])
             res += value
-            dest.write(res + '\n')
         else:
             exit_error("NO VALUE IN PUSH INSTRUCTION")
+        asm.write(res + '\n')
+    if opr == "POP":
+        print("pop")
+        res = "0x0b00000"
+        if(instr[1]):
+            dest = fix_hex_num(instr[1])
+            res += dest
+        else:
+            exit_error("NO VALUE IN POP INSTRUCTION")
+        asm.write(res + '\n')
     if opr == "MOV":
         print("mov")
-        res = "0x4"
+        res = "0x02"
         if(len(instr) == 3):
+            dest = 0
             if(is_valid_register(instr[1])):
-                regnum = get_register_number(instr[1])
-                regnum = fix_hex_num(regnum)
-                res += regnum + "0"
+                dest = get_register_number(instr[1])
+                dest = fix_hex_num(dest)
             else:
                 exit_error("MISSING REGISTER IN MOV INSTRUCTION")
             if(instr[2] == 'sp'):
-                res += "10000"
+                res += "1" + dest + "0000"
             elif(instr[2].isdigit()):
-                res+="0"
-                res+=fix_hex_num(instr[2])
+                res += "0" + dest
+                val = fix_to_16bit(instr[2])
+                res += val
+                print(val)
             elif(is_valid_register(instr[2])):
-                res+="2000"
+                res+="2" + dest + "000"
                 regnum = get_register_number(instr[2])
                 regnum = fix_hex_num(regnum)
-                res+=regnum
+                res += regnum
             else:
                 exit_error("INVALID INPUT IN MOV INSTRUCTION")
-            dest.write(res + '\n')
+            asm.write(res + '\n')
         else:
             exit_error("MISSING PARAMETERS IN MOV INSTRUCTION")
-            
 
 src.close()
-dest.close()
+asm.close()
