@@ -10,7 +10,7 @@ def validate_address(arg):
     return str.isdigit(arg) and int(arg) <= 0xffff
 
 def validate_num_val(arg):
-    return str.isdigit(arg) & int(arg) <= 0xffffffff
+    return str.isdigit(arg) and int(arg) <= 0xffffffff
 
 def rirlrr_validation(args):
     return len(args) == 2 and is_reg(args[0]) and (validate_num_val(args[1]) or is_reg(args[1]))
