@@ -1,5 +1,8 @@
 from enum import auto, Enum
 
+data_seg_start = 0x6000
+code_seg_start = 0x8000
+
 def is_reg(arg):
     return arg in reg_dict.keys()
 
@@ -167,6 +170,3 @@ arg_rules = {
     "OR":  rirlrr_validation,
     "XOR":  rirlrr_validation,
 }
-
-data_seg_start = 0x6000
-code_seg_start = 0x8000
